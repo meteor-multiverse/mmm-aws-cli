@@ -1,29 +1,8 @@
-var path = require('path');
 var _ = require('lodash');
 var execSync = require('sync-exec');
 var customCommands = require('./customCommands');
 
-var _inited = false;
 
-
-
-/**
- * Install the AWS CLI and its many dependencies
- * @private
- */
-function _init() {
-  if (!_inited) {
-    console.warn('About to install/upgrade your AWS CLI utility... (may require `sudo` password!)');
-    var result = execSync('sudo -H bash ' + path.join(__dirname, 'installAwsCli.sh'));
-    if (result.status === 0) {
-      _inited = true;
-      console.warn('Successfully installed/upgraded AWS CLI utility!');
-    }
-    else {
-      throw new Error('Failed to install AWS CLI utility!\n\n' + (result.stderr || result.stdout));
-    }
-  }
-}
 
 function mergeOptions(opts) {
   if (this && this._options && opts) {
@@ -288,17 +267,8 @@ function AwsCli(opts) {
     return new AwsCli(opts);
   }
 
-  // Install the AWS CLI and its many dependencies... but only a max of once!
-  if (AwsCli.autoInstall === true) {
-    _init();
-  }
-
   this._options = opts || {};
 };
-
-// Control whether or not using this module auto-installs the underlying AWS CLI
-AwsCli.autoInstall = false;
-
 
 AwsCli.prototype.o = AwsCli.prototype.options = mergeOptions;
 
@@ -419,4 +389,34 @@ function AwsCliRun(service, cmd, input) {
   }
 
   return this.service(service).command(cmd, input);
+};
+
+
+AwsCli.prototype.version =
+function AwsCliGetVersion() {
+  if (!(this instanceof AwsCli)) {
+    throw new Error('Trying to execute AwsCommand without an ancestor AwsCli');
+  }
+
+  // Redirect stderr to stdout... stderr seems to get lost sometimes with the execSync module
+  var cmd = 'aws --version 2>&1';
+  var result = execSync(cmd);
+  if (result.status !== 0) {
+    throw new Error('Failed to execute AWS command:\n   ' + cmd + '\n\n' + (result.stderr || result.stdout));
+  }
+
+  // Example output (to stderr, normally):
+  //   aws-cli/1.9.17 Python/2.7.10 Darwin/15.2.0 botocore/1.3.17
+  var versionFullStr = (result.stdout || '').replace(/^\s+|\s+$/g, '');
+
+  var versionMatchingRegex = /^aws(?:-cli)?\/([\d]+\.[\d]+\.[^\s]+)(?:\s.*)?$/i;
+
+  var versionMatch = versionFullStr.match(versionMatchingRegex);
+  var versionShortStr = (versionMatch && versionMatch.length > 1) ? versionMatch[1] : null;
+
+  if (!versionShortStr) {
+    throw new Error('Failed to determine AWS CLI version!\nFull version string was: ' + versionFullStr);
+  }
+
+  return versionShortStr;
 };
