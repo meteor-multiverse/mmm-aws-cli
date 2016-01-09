@@ -1,2 +1,2 @@
-# mm-aws-cli
-Meteor Multiverse wrapper for the Amazon AWS CLI
+# mmm-aws-cli
+Meteor Multiverse Manager wrapper for the Amazon AWS CLI
