@@ -1,7 +1,7 @@
 {
   "name": "mmm-aws-cli",
   "description": "Meteor Multiverse Manager wrapper for the Amazon AWS CLI",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "James M. Greene",
     "email": "james.m.greene@gmail.com",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/edSpring/mmm-aws-cli#readme",
   "keywords": [],
+  "os": ["darwin", "linux"],
   "main": "index.js",
   "scripts": {
     "preinstall": "./preinstall.sh",
